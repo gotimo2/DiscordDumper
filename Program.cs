@@ -10,6 +10,13 @@ namespace DiscordDumper
 
             var Client = await Login();
 
+            var Connection = new DataAccessor("messages.sqlite");
+
+            if (!await Connection.DatabaseExists())
+            {
+                await Connection.Setup();
+            }
+
             Console.WriteLine("Guild id: ");
 
             ulong guildId;
@@ -43,7 +50,17 @@ namespace DiscordDumper
                     {
                         foreach(var message in messagesPage)
                         {
-                            Console.WriteLine($"{message.Author} : {message.Content}");
+                            Message msg = new Message
+                            {
+                                userID = message.Author.Id,
+                                username = message.Author.Username,
+                                channelName = message.Channel.Name,
+                                channelID = message.Channel.Id,
+                                content = message.Content,
+                                messageID = message.Id,
+                                sent = message.Timestamp.UtcDateTime
+                            };
+                            await Connection.InsertMessage(msg);
                         }
                     });
                     foreach (var message in await channel.GetPinnedMessagesAsync())
