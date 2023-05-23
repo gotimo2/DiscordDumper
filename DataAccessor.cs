@@ -5,19 +5,22 @@ using System.Text;
 using System.Threading.Tasks;
 using Dapper;
 using Microsoft.Data.Sqlite;
+using SQLitePCL;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DiscordDumper
 {
     public class DataAccessor
     {
-        SqliteConnection connection;
+        private string connectionString;
 
         public DataAccessor(string fileName) {
-           connection = new SqliteConnection("Data Source=" + fileName);
+            connectionString = "Data Source=" + fileName;
         }
 
         public async Task<bool> DatabaseExists()
         {
+            using var connection = new SqliteConnection(connectionString);
             connection.Open();
             var table = await connection.QueryAsync<string>("SELECT name FROM sqlite_master WHERE type='table' AND name = 'Message';");
             var tableName = table.FirstOrDefault();
@@ -29,21 +32,26 @@ namespace DiscordDumper
 
         public async Task Setup()
         {
+            using var connection = new SqliteConnection(connectionString);
+            Console.WriteLine("Setting up table");
             connection.Open();
             await connection.ExecuteAsync("CREATE TABLE Message(" +
                 "username VARCHAR(100)," +
                 "content VARCHAR(2000)," +
                 "sent DATETIME," +
-                "channelname VARCHAR(200)" +
+                "channelname VARCHAR(200)," +
                 "messageid BIGINT," +
                 "userid BIGINT," +
                 "channelid BIGINT" +
-                ";)");
+                ");");
+            Console.WriteLine("finished setting up database");
         }
 
         public async Task InsertMessage(Message message)
         {
-            await connection.ExecuteAsync("INSERT INTO Message (username, content, sent, channelname, messageid, userid, channelid) VALUES (@username, @content, @sent, @channelName, @messageID, @userID, @channelID )");
+            using var connection = new SqliteConnection(connectionString);
+            connection.Open();
+            await connection.ExecuteAsync(@"INSERT INTO Message (username, content, sent, channelname, messageid, userid, channelid) VALUES (@username, @content, @sent, @channelName, @messageID, @userID, @channelID )", message);
         }
     }
 }

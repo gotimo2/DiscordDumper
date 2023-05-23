@@ -10,9 +10,9 @@ namespace DiscordDumper
 
             var Client = await Login();
 
-            var Connection = new DataAccessor("messages.sqlite");
+            var Connection = new DataAccessor("./message3.sqlite");
 
-            if (!await Connection.DatabaseExists())
+            if (await Connection.DatabaseExists() == false)
             {
                 await Connection.Setup();
             }
@@ -45,7 +45,7 @@ namespace DiscordDumper
                 Console.WriteLine("____________________________________________________");
                 try
                 {
-                    var messages = channel.GetMessagesAsync(100000, CacheMode.AllowDownload);
+                    var messages = channel.GetMessagesAsync(1000000, CacheMode.AllowDownload);
                     await messages.ForEachAsync(async messagesPage =>
                     {
                         foreach(var message in messagesPage)
