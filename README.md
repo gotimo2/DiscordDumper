@@ -1,2 +1,2 @@
 # DiscordDumper
- Dumps a discord chat history into a database
+Tool for easily dumping a discord server into an SQLite database

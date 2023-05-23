@@ -5,7 +5,7 @@ namespace DiscordDumper
 {
     public class DataAccessor
     {
-        private string connectionString;
+        private readonly string connectionString;
 
         public DataAccessor(string fileName) {
             connectionString = "Data Source=" + fileName;

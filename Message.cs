@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DiscordDumper
 {
-    public struct Message
+    public readonly struct Message
     {
         public string content { get; init; }
         public string username { get; init; }

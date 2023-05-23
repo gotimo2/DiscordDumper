@@ -5,7 +5,7 @@ namespace DiscordDumper
 {
     internal class Program
     {
-        static async Task Main(string[] args)
+        static async Task Main()
         {
             Console.WriteLine("SQLite database to write to (Leave blank for messages.sqlite): ");
 
@@ -22,7 +22,14 @@ namespace DiscordDumper
 
             Console.WriteLine("Bot token: ");
 
-            var Client = await Login(Console.ReadLine());
+            string token = "";
+
+            while (string.IsNullOrEmpty(token) )
+            {
+                token=Console.ReadLine()!;
+            }
+
+            var Client = await Login(token);
 
             Console.Clear();
 
@@ -39,14 +46,11 @@ namespace DiscordDumper
                 Console.WriteLine("Invalid id!");
             }
 
-
-
             var server = await Client.GetGuildAsync(guildId) ?? throw new Exception("Guild not found!");
 
             Console.WriteLine("Channels to dump:");
 
             var channels = await server.GetTextChannelsAsync();
-
 
             foreach (var channel in channels)
             {
@@ -63,7 +67,7 @@ namespace DiscordDumper
                     {
                         foreach(var message in messagesPage)
                         {
-                            Message msg = new Message
+                            Message msg = new()
                             {
                                 userID = message.Author.Id,
                                 username = message.Author.Username,
@@ -80,7 +84,6 @@ namespace DiscordDumper
                 catch (Exception e){
                     Console.WriteLine($"Error getting messages in channel {channel.Name} : {e.Message} ");
                 }
-
             }
         }
 
