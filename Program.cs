@@ -7,15 +7,24 @@ namespace DiscordDumper
     {
         static async Task Main(string[] args)
         {
+            Console.WriteLine("SQLite database to write to (Leave blank for messages.sqlite): ");
 
-            var Client = await Login();
+            var DatabaseName = Console.ReadLine();
 
-            var Connection = new DataAccessor("./message3.sqlite");
+            if (string.IsNullOrEmpty(DatabaseName) ) { DatabaseName = "messages.sqlite"; }
+
+            var Connection = new DataAccessor(DatabaseName);
 
             if (await Connection.DatabaseExists() == false)
             {
                 await Connection.Setup();
             }
+
+            Console.WriteLine("Bot token: ");
+
+            var Client = await Login(Console.ReadLine());
+
+            Console.Clear();
 
             Console.WriteLine("Guild id: ");
 
@@ -30,19 +39,23 @@ namespace DiscordDumper
                 Console.WriteLine("Invalid id!");
             }
 
-            Console.WriteLine("Guilds:");
 
-            foreach (var guild in await Client.GetGuildsAsync())
-            {
-                Console.WriteLine(guild.Id);
-            }
-            
+
             var server = await Client.GetGuildAsync(guildId) ?? throw new Exception("Guild not found!");
 
-            foreach (var channel in await server.GetTextChannelsAsync())
+            Console.WriteLine("Channels to dump:");
+
+            var channels = await server.GetTextChannelsAsync();
+
+
+            foreach (var channel in channels)
             {
                 Console.WriteLine(channel.Name);
-                Console.WriteLine("____________________________________________________");
+            }
+
+            foreach (var channel in channels)
+            {
+                Console.WriteLine("Dumping " + channel.Name);
                 try
                 {
                     var messages = channel.GetMessagesAsync(1000000, CacheMode.AllowDownload);
@@ -63,23 +76,16 @@ namespace DiscordDumper
                             await Connection.InsertMessage(msg);
                         }
                     });
-                    foreach (var message in await channel.GetPinnedMessagesAsync())
-                    {
-                        Console.WriteLine(message.Content);
-                    }
                 }
-                catch {
-                    Console.WriteLine("Error getting messages in channel " + channel.Name);
+                catch (Exception e){
+                    Console.WriteLine($"Error getting messages in channel {channel.Name} : {e.Message} ");
                 }
 
             }
-
-            await Task.Delay(-1);
-
         }
 
 
-        private static async Task<IDiscordClient> Login() {
+        private static async Task<IDiscordClient> Login(string Token) {
 
             var ready = false;
 
@@ -91,9 +97,7 @@ namespace DiscordDumper
                 return Task.CompletedTask;
             };
 
-            var token = Environment.GetEnvironmentVariable("TOKEN");
-
-            await socketClient.LoginAsync(TokenType.Bot, token);
+            await socketClient.LoginAsync(TokenType.Bot, Token);
 
             await socketClient.StartAsync();
 
