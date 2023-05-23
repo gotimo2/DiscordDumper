@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "DiscordDumper": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "TOKEN": "SET A TOKEN HERE"
+      }
+    }
+  }
+}
